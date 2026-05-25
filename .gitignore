@@ -1,0 +1,16 @@
+# 환경설정 (secret 포함 — 절대 커밋 금지)
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# DB 파일
+*.db
+
+# IDE
+.idea/

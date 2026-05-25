@@ -1,0 +1,165 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1779703974963,
+  "projectRoot": "/Users/veronica/Desktop/project2",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Python",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "requirements.txt"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "pip",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": "snake_case",
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "app",
+      "tests"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "app": {
+      "path": "app",
+      "purpose": "Application code",
+      "fileCount": 3,
+      "lastAccessed": 1779703974953,
+      "keyFiles": [
+        "__init__.py",
+        "database.py",
+        "main.py"
+      ]
+    },
+    "tests": {
+      "path": "tests",
+      "purpose": "Test files",
+      "fileCount": 2,
+      "lastAccessed": 1779703974953,
+      "keyFiles": [
+        "__init__.py",
+        "conftest.py"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "app/main.py",
+      "accessCount": 3,
+      "lastAccessed": 1779704417111,
+      "type": "file"
+    },
+    {
+      "path": "app/database.py",
+      "accessCount": 2,
+      "lastAccessed": 1779704404763,
+      "type": "file"
+    },
+    {
+      "path": "requirements.txt",
+      "accessCount": 2,
+      "lastAccessed": 1779704423100,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 1,
+      "lastAccessed": 1779704021153,
+      "type": "file"
+    },
+    {
+      "path": "app/dto/response_schema.py",
+      "accessCount": 1,
+      "lastAccessed": 1779704031608,
+      "type": "file"
+    },
+    {
+      "path": "app/repository/board_repository.py",
+      "accessCount": 1,
+      "lastAccessed": 1779704032568,
+      "type": "file"
+    },
+    {
+      "path": "app/exception/handlers.py",
+      "accessCount": 1,
+      "lastAccessed": 1779704033349,
+      "type": "file"
+    },
+    {
+      "path": "app/service/board_service.py",
+      "accessCount": 1,
+      "lastAccessed": 1779704034279,
+      "type": "file"
+    },
+    {
+      "path": "app/enums/error_code.py",
+      "accessCount": 1,
+      "lastAccessed": 1779704034824,
+      "type": "file"
+    },
+    {
+      "path": "app/controller/board_controller.py",
+      "accessCount": 1,
+      "lastAccessed": 1779704035203,
+      "type": "file"
+    },
+    {
+      "path": "tests/conftest.py",
+      "accessCount": 1,
+      "lastAccessed": 1779704057078,
+      "type": "file"
+    },
+    {
+      "path": "tests/unit/test_board_service.py",
+      "accessCount": 1,
+      "lastAccessed": 1779704057719,
+      "type": "file"
+    },
+    {
+      "path": "pytest.ini",
+      "accessCount": 1,
+      "lastAccessed": 1779704058797,
+      "type": "file"
+    },
+    {
+      "path": "app/config.py",
+      "accessCount": 1,
+      "lastAccessed": 1779704397108,
+      "type": "file"
+    },
+    {
+      "path": ".env",
+      "accessCount": 1,
+      "lastAccessed": 1779704430035,
+      "type": "file"
+    },
+    {
+      "path": ".env.example",
+      "accessCount": 1,
+      "lastAccessed": 1779704432115,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
