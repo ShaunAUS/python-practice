@@ -1,30 +1,24 @@
 """
-conftest.py — pytest 공용 픽스처 & 팩토리
-secretary 의 BoardTestFixture + IntegrationTestSupport + ControllerTestConfig 에 대응
+conftest.py — pytest 공용 픽스처 & 팩토리 (FastAPI 공식 테스트 방식).
 
-Java 구조 대응표:
-  BoardTestFixture.DEFAULT_*   →  이 파일의 DEFAULT_* 상수
-  BoardTestFixture.createBoard()  →  make_board() 팩토리 함수
-  IntegrationTestSupport (@SpringBootTest + @Transactional)  →  client fixture (get_db 오버라이드)
-  entityManager.flush/clear  →  각 테스트마다 독립 engine (function scope)
+  - 인메모리 SQLite(StaticPool) + function scope → 테스트마다 독립 DB
+  - get_session 의존성 오버라이드 (FastAPI 공식 dependency_overrides 패턴)
 """
 from __future__ import annotations
 
 from collections.abc import Generator
-from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
+from sqlmodel import Session, SQLModel, create_engine
 
-from app.database import get_db
-from app.domain.board import Base, Board
+from app.core.db import get_session
 from app.main import app
+from app.models import Board
 
 # ---------------------------------------------------------------------------
-# 픽스처 상수 — Java BoardTestFixture.DEFAULT_*/SECOND_* 에 대응
+# 픽스처 상수
 # ---------------------------------------------------------------------------
 
 DEFAULT_TITLE = "첫 번째 공지사항"
@@ -41,7 +35,7 @@ UPDATE_AUTHOR = "수정자"
 
 
 # ---------------------------------------------------------------------------
-# 팩토리 함수 — Java BoardTestFixture.createBoard() / createBoardWithoutId() 에 대응
+# 팩토리
 # ---------------------------------------------------------------------------
 
 def make_board(
@@ -50,19 +44,8 @@ def make_board(
     content: str = DEFAULT_CONTENT,
     author: str = DEFAULT_AUTHOR,
 ) -> Board:
-    """Board 엔티티 인스턴스 생성 (id 없음 — DB 저장 전 상태).
-
-    단위 테스트에서는 Mock 반환값으로, 통합 테스트에서는 DB 저장 대상으로 사용.
-    Java BoardTestFixture.createBoardWithoutId() 에 대응.
-    """
-    now = datetime.now(UTC)
-    return Board(
-        title=title,
-        content=content,
-        author=author,
-        created_at=now,
-        updated_at=now,
-    )
+    """Board 엔티티 인스턴스 (id 없음 — DB 저장 전)."""
+    return Board(title=title, content=content, author=author)
 
 
 def make_board_request(
@@ -71,69 +54,43 @@ def make_board_request(
     content: str = DEFAULT_CONTENT,
     author: str = DEFAULT_AUTHOR,
 ) -> dict[str, str]:
-    """POST/PUT 요청 본문 dict 생성.
-
-    통합 테스트에서 client.post(..., json=make_board_request()) 형태로 사용.
-    """
+    """POST/PUT 요청 본문 dict."""
     return {"title": title, "content": content, "author": author}
 
 
 # ---------------------------------------------------------------------------
-# pytest fixture — DB 엔진 & 세션 (function scope → 테스트마다 독립 DB)
+# 픽스처 — 엔진 / 세션 / 클라이언트
 # ---------------------------------------------------------------------------
 
 @pytest.fixture()
 def test_engine():
-    """인메모리 SQLite 엔진 — Java @Transactional + entityManager.flush/clear 에 대응.
-
-    StaticPool: 같은 프로세스 내 여러 연결이 하나의 인메모리 DB를 공유.
-    function scope: 각 테스트마다 테이블을 새로 생성/삭제 → 완전한 격리.
-    """
     engine = create_engine(
         "sqlite://",
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
-    Base.metadata.create_all(engine)
+    SQLModel.metadata.create_all(engine)
     yield engine
-    Base.metadata.drop_all(engine)
+    SQLModel.metadata.drop_all(engine)
     engine.dispose()
 
 
 @pytest.fixture()
 def db_session(test_engine) -> Generator[Session, None, None]:
-    """SQLAlchemy 세션 픽스처 — 단위 테스트에서 직접 DB 접근 시 사용."""
-    TestingSessionLocal = sessionmaker(bind=test_engine, autocommit=False, autoflush=False)
-    session = TestingSessionLocal()
-    try:
+    """crud 단위 테스트용 실제 인메모리 세션."""
+    with Session(test_engine) as session:
         yield session
-    finally:
-        session.close()
 
-
-# ---------------------------------------------------------------------------
-# pytest fixture — FastAPI TestClient (get_db 의존성 오버라이드)
-# ---------------------------------------------------------------------------
 
 @pytest.fixture()
 def client(test_engine) -> Generator[TestClient, None, None]:
-    """FastAPI TestClient — Java @WebMvcTest MockMvc 또는 @SpringBootTest + TestRestTemplate 에 대응.
+    """FastAPI TestClient — get_session 을 인메모리 세션으로 오버라이드."""
 
-    get_db 의존성을 인메모리 SQLite 세션으로 오버라이드.
-    TestClient를 컨텍스트 매니저로 사용하면 lifespan(startup)이 실행되지만,
-    get_db가 이미 오버라이드되어 있으므로 실제 board.db는 건드리지 않음.
-    """
-    TestingSessionLocal = sessionmaker(bind=test_engine, autocommit=False, autoflush=False)
+    def override_get_session() -> Generator[Session, None, None]:
+        with Session(test_engine) as session:
+            yield session
 
-    def override_get_db() -> Generator[Session, None, None]:
-        db = TestingSessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
-
-    app.dependency_overrides[get_db] = override_get_db
-    # context manager 사용 → lifespan startup/shutdown 실행
+    app.dependency_overrides[get_session] = override_get_session
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()

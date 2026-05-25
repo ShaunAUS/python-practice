@@ -5,13 +5,13 @@ from typing import Generic, Optional, TypeVar
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
-from app.enums.error_code import ErrorCode
+from app.core.errors import ErrorCode
 
 T = TypeVar("T")
 
 
 class Response(BaseModel, Generic[T]):
-    """API 공통 응답 포맷 — Java Response<T> 에 대응."""
+    """API 공통 응답 엔벨로프 — 기존 기능 유지(success/data/message/errorCode)."""
 
     model_config = ConfigDict(
         alias_generator=to_camel,

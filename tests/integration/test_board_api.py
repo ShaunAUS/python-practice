@@ -357,3 +357,33 @@ class TestValidation:
         body = response.json()
         assert body["success"] is False
         assert body["errorCode"] == "VALIDATION_ERROR"
+
+    def test_빈_문자열_title_400(self, client: TestClient) -> None:
+        """title 이 빈 문자열 "" 이면 400 — Java @NotBlank(min_length=1) 대응.
+
+        H1 적용 전엔 bare str 라 ""가 통과해 Java 와 동작이 달랐음.
+        """
+        # when
+        response = client.post("/api/boards", json=make_board_request(title=""))
+
+        # then
+        assert response.status_code == 400
+        assert response.json()["errorCode"] == "VALIDATION_ERROR"
+
+    def test_빈_문자열_content_400(self, client: TestClient) -> None:
+        """content 가 빈 문자열이면 400."""
+        # when
+        response = client.post("/api/boards", json=make_board_request(content=""))
+
+        # then
+        assert response.status_code == 400
+        assert response.json()["errorCode"] == "VALIDATION_ERROR"
+
+    def test_빈_문자열_author_400(self, client: TestClient) -> None:
+        """author 가 빈 문자열이면 400."""
+        # when
+        response = client.post("/api/boards", json=make_board_request(author=""))
+
+        # then
+        assert response.status_code == 400
+        assert response.json()["errorCode"] == "VALIDATION_ERROR"
