@@ -14,3 +14,6 @@ __pycache__/
 
 # IDE
 .idea/
+
+# oh-my-claudecode 도구 상태 (런타임 잡동사니 — 코드 아님)
+.omc/
