@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from pydantic import ConfigDict
-from pydantic.alias_generators import to_camel
 from sqlmodel import Field, SQLModel
 
 
@@ -13,7 +11,7 @@ def _utcnow() -> datetime:
 
 class BoardBase(SQLModel):
     """공유 필드 — Field(min_length=1) 로 빈 문자열 검증(요청 시 400)."""
-
+    # model_validate 여기서 제약조건들 검사
     title: str = Field(min_length=1)
     content: str = Field(min_length=1)
     author: str = Field(min_length=1)
@@ -31,21 +29,10 @@ class Board(BoardBase, table=True):
         nullable=False,
         sa_column_kwargs={"onupdate": _utcnow},  # UPDATE 시 자동 갱신
     )
+    deleted: bool = Field(default=False, nullable=False)  # soft delete 플래그
 
-
-class BoardCreate(BoardBase):
-    """POST/PUT 요청 본문."""
-
-
-class BoardPublic(BoardBase):
-    """응답 본문 — snake_case → camelCase (createdAt/updatedAt)."""
-
-    model_config = ConfigDict(
-        alias_generator=to_camel,
-        populate_by_name=True,
-        from_attributes=True,
-    )
-
-    id: int
-    created_at: datetime
-    updated_at: datetime
+    def update(self, title: str, content: str, author: str) -> None:
+        """필드 일괄 변경 — Java Board.update() 대응."""
+        self.title = title
+        self.content = content
+        self.author = author

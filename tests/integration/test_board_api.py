@@ -387,3 +387,73 @@ class TestValidation:
         # then
         assert response.status_code == 400
         assert response.json()["errorCode"] == "VALIDATION_ERROR"
+
+
+class TestPagination:
+    """GET /api/boards/page — 페이지네이션."""
+
+    def test_페이지_크기만큼_반환_및_메타(self, client: TestClient) -> None:
+        for _ in range(3):
+            client.post("/api/boards", json=make_board_request())
+
+        response = client.get("/api/boards/page", params={"page": 1, "size": 2})
+
+        assert response.status_code == 200
+        data = response.json()["data"]
+        assert len(data["items"]) == 2
+        assert data["total"] == 3
+        assert data["totalPages"] == 2
+        assert data["page"] == 1
+
+    def test_마지막_페이지_나머지_1개(self, client: TestClient) -> None:
+        for _ in range(3):
+            client.post("/api/boards", json=make_board_request())
+
+        response = client.get("/api/boards/page", params={"page": 2, "size": 2})
+
+        assert response.status_code == 200
+        assert len(response.json()["data"]["items"]) == 1
+
+
+# ---------------------------------------------------------------------------
+# TestPatchBoard — PATCH /api/boards/{id} (부분수정)
+# ---------------------------------------------------------------------------
+
+class TestPatchBoard:
+    """게시글 부분수정 API 통합 테스트 — 보낸 필드만 갱신, 나머지 유지."""
+
+    def test_제목만_부분수정(self, client: TestClient) -> None:
+        """title 만 보내면 title 만 바뀌고 content/author 는 유지된다."""
+        # given
+        board_id = client.post("/api/boards", json=make_board_request()).json()["data"]["id"]
+
+        # when
+        response = client.patch(f"/api/boards/{board_id}", json={"title": UPDATE_TITLE})
+
+        # then
+        assert response.status_code == 200
+        data = response.json()["data"]
+        assert data["title"] == UPDATE_TITLE
+        assert data["content"] == DEFAULT_CONTENT  # 안 보낸 필드 유지
+        assert data["author"] == DEFAULT_AUTHOR
+
+    def test_존재하지_않는_id_부분수정_시_404(self, client: TestClient) -> None:
+        """없는 id PATCH → 404."""
+        # when
+        response = client.patch("/api/boards/999", json={"title": UPDATE_TITLE})
+
+        # then
+        assert response.status_code == 404
+        assert response.json()["errorCode"] == "BOARD_NOT_FOUND"
+
+    def test_빈_문자열_보내면_400(self, client: TestClient) -> None:
+        """필드를 보내되 빈 문자열이면 400 — min_length 검증 유지."""
+        # given
+        board_id = client.post("/api/boards", json=make_board_request()).json()["data"]["id"]
+
+        # when
+        response = client.patch(f"/api/boards/{board_id}", json={"title": ""})
+
+        # then
+        assert response.status_code == 400
+        assert response.json()["errorCode"] == "VALIDATION_ERROR"

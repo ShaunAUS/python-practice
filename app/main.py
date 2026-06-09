@@ -23,6 +23,7 @@ app = FastAPI(
     description=settings.app_description,
     version=settings.app_version,
     lifespan=lifespan,
+    openapi_url=None,  # OpenAPI 스키마 끔 → /docs(Swagger UI)·/redoc·/openapi.json 전부 비활성
 )
 
 register_exception_handlers(app)

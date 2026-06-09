@@ -4,7 +4,8 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from app.core.errors import BoardNotFoundError, ErrorCode
+from app.core.error_code import ErrorCode
+from app.core.exceptions import BoardNotFoundError
 from app.core.response import Response
 
 

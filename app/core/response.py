@@ -1,16 +1,14 @@
 from __future__ import annotations
 
-from typing import Generic, Optional, TypeVar
+from typing import Self
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
-from app.core.errors import ErrorCode
-
-T = TypeVar("T")
+from app.core.error_code import ErrorCode
 
 
-class Response(BaseModel, Generic[T]):
+class Response[T](BaseModel):
     """API 공통 응답 엔벨로프 — 기존 기능 유지(success/data/message/errorCode)."""
 
     model_config = ConfigDict(
@@ -20,16 +18,16 @@ class Response(BaseModel, Generic[T]):
     )
 
     success: bool
-    data: Optional[T] = None
+    data: T | None = None
     message: str = "성공"
-    error_code: Optional[str] = None  # JSON: errorCode
+    error_code: str | None = None  # JSON: errorCode
 
     @classmethod
-    def ok(cls, data: Optional[T] = None, message: str = "성공") -> "Response[T]":
+    def ok(cls, data: T | None = None, message: str = "성공") -> Self:
         return cls(success=True, data=data, message=message, error_code=None)
 
     @classmethod
-    def fail(cls, error_code: ErrorCode, message: Optional[str] = None) -> "Response[T]":
+    def fail(cls, error_code: ErrorCode, message: str | None = None) -> Self:
         return cls(
             success=False,
             data=None,

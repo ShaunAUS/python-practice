@@ -10,7 +10,9 @@ source .venv/bin/activate
 uvicorn app.main:app --reload
 ```
 
-서버 기동 후 → http://localhost:8000/docs (Swagger UI)
+서버 기동 후 → http://localhost:8000/api/boards
+
+> Swagger UI(`/docs`)·OpenAPI(`/openapi.json`)는 비활성화됨 (`main.py` `openapi_url=None`).
 
 설정은 `.env`(또는 환경변수 `APP_*`)로 주입 — `app/core/config.py` 참고.
 
