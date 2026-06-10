@@ -30,9 +30,3 @@ class Board(BoardBase, table=True):
         sa_column_kwargs={"onupdate": _utcnow},  # UPDATE 시 자동 갱신
     )
     deleted: bool = Field(default=False, nullable=False)  # soft delete 플래그
-
-    def update(self, title: str, content: str, author: str) -> None:
-        """필드 일괄 변경 — Java Board.update() 대응."""
-        self.title = title
-        self.content = content
-        self.author = author

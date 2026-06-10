@@ -42,7 +42,8 @@ class BoardService:
         board = self.repository.find_by_id(board_id)
         if board is None:
             raise BoardNotFoundError(board_id)
-        board.update(data.title, data.content, data.author)
+        # 전체 교체(PUT) — 들어온 모든 필드를 dict로 한 번에 적용
+        board.sqlmodel_update(data.model_dump())
         return BoardPublic.model_validate(self.repository.save(board))
 
     def patch(self, board_id: int, data: BoardUpdate) -> BoardPublic:
@@ -50,9 +51,8 @@ class BoardService:
         if board is None:
             raise BoardNotFoundError(board_id)
 
-        # DTO에서 실제로 들어온 필드만 골라 갱신 (exclude_unset → PATCH 부분수정)
-        for key, value in data.model_dump(exclude_unset=True).items():
-            setattr(board, key, value)
+        # 들어온 필드만 골라 갱신 (exclude_unset → PATCH 부분수정)
+        board.sqlmodel_update(data.model_dump(exclude_unset=True))
         return BoardPublic.model_validate(self.repository.save(board)) # 파이썬은 @Transactional이 없어서  self.session.commit()로 명시적으로 커밋해야함
 
     def delete(self, board_id: int) -> None:
